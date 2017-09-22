@@ -10,6 +10,6 @@ s = socket(AF_INET, SOCK_STREAM)
 s.connect((address, port))
 s.send(jim.get_presence_msg().encode('ascii'))
 tm = s.recv(1024)
-print(jim.parse_message(tm.decode('ascii')))
+print(jim.parse_server_message(tm.decode('ascii')))
 s.close()
 
