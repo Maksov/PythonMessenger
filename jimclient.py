@@ -1,5 +1,5 @@
-import time
 import json
+import time
 
 
 def get_presence_msg(type_status='online', account_name='client', status='test_status'):
@@ -15,16 +15,12 @@ def get_quit_msg():
     return msg
 
 
-def parse_client_message(msg):
-    try:
-        parsed_msg = json.loads(msg)
-    except ValueError:
-        return get_server_response(400, None, 'Incorrectly formed JSON')
-    if 'action' in parsed_msg:
-        if parsed_msg['action'] == 'presence':
-            return get_server_response(200, 'OK', None)
-    else:
-        return get_server_response(400, None, 'Incorrectly formed JSON')
+def get_user_to_chat_msg(chatname, text, account_name='guest'):
+    timestr = time.ctime(time.time())
+    chatname = '#' + chatname
+    msg = json.dumps({'action': 'msg', 'time': timestr,
+                      'to': chatname, 'from': account_name, 'message': text})
+    return msg
 
 
 def parse_server_message(msg):
@@ -36,13 +32,3 @@ def parse_server_message(msg):
     if 'response' in parsed_msg:
         return '{0}: Ответ сервера: {1}, {2}'.format(
             parsed_msg['time'], parsed_msg['response'], parsed_msg['alert'])
-
-
-def get_server_response(response, alert, error):
-    msg = ''
-    timestr = time.ctime(time.time())
-    if alert:
-        msg = json.dumps({'response': response, 'time': timestr, 'alert': alert})
-    if error:
-        msg = json.dumps({'response': response, 'time': timestr, 'error': error})
-    return msg
