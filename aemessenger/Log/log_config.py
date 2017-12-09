@@ -1,12 +1,14 @@
 import logging
+import os
 from functools import wraps
 from logging.handlers import TimedRotatingFileHandler
 
 
 def configlogging(isserver: bool):
+    package_dir = os.path.abspath(os.path.dirname(__file__))
     fmt = '%(asctime)s %(levelname)s %(message)s'
     if isserver:
-        filename = './LOG/app.server.log'
+        filename = os.path.join(package_dir, 'app.server.log')
         formatter = logging.Formatter(fmt)
         handler = TimedRotatingFileHandler(filename, when="midnight", interval=1)
         handler.suffix = '%Y-%m-%d'
@@ -16,7 +18,7 @@ def configlogging(isserver: bool):
         logger.setLevel(logging.INFO)
         return logger
     else:
-        filename = './LOG/app.client.log'
+        filename = os.path.join(package_dir, 'app.client.log')
         loggername = 'app.client'
         logging.basicConfig(
             format=fmt,

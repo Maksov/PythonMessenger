@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, ForeignKey, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+import os
 Base = declarative_base()
 
 
@@ -48,7 +48,10 @@ class ContactList(Base):
 
 class ServerDB:
     def __init__(self):
-        self.engine = create_engine('sqlite:///Server/server.sqlite?check_same_thread=False')
+        package_dir = os.path.abspath(os.path.dirname(__file__))
+        db_dir = os.path.join(package_dir, 'server.sqlite?check_same_thread=False')
+        sqlite_path = ''.join(['sqlite:///', db_dir])
+        self.engine = create_engine(sqlite_path)
         Base.metadata.create_all(self.engine)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()

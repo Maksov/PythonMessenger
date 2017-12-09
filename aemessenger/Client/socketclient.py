@@ -5,7 +5,7 @@ from threading import Thread
 
 from aemessenger.Log.log_config import configlogging
 
-from aemessenger.OLD.jimclient import get_presence_msg, get_user_to_chat_msg
+# from aemessenger.OLD.jimclient import get_presence_msg, get_user_to_chat_msg
 
 logger = configlogging(False)
 # ADDRESS = 'localhost'
@@ -104,15 +104,15 @@ class SocketClient(object):
     #     asyncio.run_coroutine_threadsafe(self.send_messages(), eloop)
     #     asyncio.run_coroutine_threadsafe(self.get_responses(), eloop)
 
-if __name__ == '__main__':
-    client_test = SocketClient()
-    client_test.send_queue.put(get_presence_msg())
-
-    while client_test.is_alive:
-        text = input("Введите сообщение: ")
-        if text == 'quit':
-            break
-        client_test.send_queue.put(get_user_to_chat_msg(chatname='all', text=text))
+# if __name__ == '__main__':
+#     client_test = SocketClient()
+#     client_test.send_queue.put(get_presence_msg())
+#
+#     while client_test.is_alive:
+#         text = input("Введите сообщение: ")
+#         if text == 'quit':
+#             break
+#         client_test.send_queue.put(get_user_to_chat_msg(chatname='all', text=text))
 
 # tm = self.sock.recv(1024)
 # print(parse_server_message(tm.decode('ascii')))

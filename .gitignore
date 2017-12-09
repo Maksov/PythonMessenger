@@ -107,3 +107,4 @@ ENV/
 
 # my stuff
 OLD/
+.pypirc

@@ -1,5 +1,6 @@
 import datetime
 import json
+import locale
 from sys import argv
 from aemessenger.Client.clientstorage import ClientDB, MsgHistory
 from aemessenger.Client.socketclient import SocketClient
@@ -104,6 +105,7 @@ class ClientController(object):
         return 0
 
     def add_user_msg_to_db(self, jimmsg):
+        locale.setlocale(locale.LC_ALL, 'en_US')
         time = datetime.datetime.strptime(jimmsg.time, "%a %b %d %H:%M:%S %Y")
         msg = MsgHistory(None, jimmsg.to, jimmsg.account, jimmsg.message, time)
         self.db.add_msg_history(msg)

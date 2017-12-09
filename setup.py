@@ -4,13 +4,13 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 setup(
-    name='ae messenger',
+    name='aemessenger',
     version='0.1',
     description='A sample Python socket messenger',
     long_description='A Geekbrains.ru messenger graduation project',
     url='https://github.com/danyae/PythonMessenger',
     author='Dany ae',
-    # author_email='',
+    author_email='noreply@aetech.ru',
     license='GPL',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -26,7 +26,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['OLD', 'Tests']),
+    packages=find_packages(exclude=['*OLD*', '*Tests*']),
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
@@ -50,8 +50,9 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'img': ['IMG/*.png', 'IMG/*.jpg'],
-        'ui': ['UI/*.ui']
+        # 'Img': ['*.png', '*.jpg'],
+        # 'UI': ['client.ui']
+        '': ['*']
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -65,8 +66,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'client=jim_gui_client:mainloop',
-            'server=tcpsocketserver:mainloop'
+            'client=aemessenger.gui_client:mainloop',
+            'server=aemessenger.server:mainloop'
         ],
     },
 )

@@ -1,5 +1,6 @@
 import sys
 import textwrap
+import os
 from aemessenger.Client.clientcontroller import ClientController
 from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
@@ -13,7 +14,9 @@ from aemessenger.JIM.jimmsg import JIMUserMsg, JIMMessageBuilder, JIMChatMsg
 class ClientWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.window = uic.loadUi('./UI/client.ui')
+        self.package_dir = os.path.abspath(os.path.dirname(__file__))
+        ui_path = os.path.join(self.package_dir, 'UI', 'client.ui')
+        self.window = uic.loadUi(ui_path)
         self.contacts = QStandardItemModel(self.window.contactListView)
         self.controller = None  # контроллер клиента
         self.msg_thread = None  # поток обработки входящих сообщений
@@ -46,13 +49,14 @@ class ClientWidget(QWidget):
             show_error_msg('Contacts not found', QMessageBox.Warning)
             return
         names = self.controller.db.get_contacts()
+        icon_path = os.path.join(self.package_dir, 'Img', 'user.png')
         for name in names:
             item = QStandardItem(name)
             item.setEditable(False)
             font = item.font()
             font.setPointSize(15)
             item.setFont(font)
-            item.setIcon(QIcon('../Img/user.png'))
+            item.setIcon(QIcon(icon_path))
             self.contacts.appendRow(item)
         self.contacts.sort(0)
         self.fill_chat_layouts(names)

@@ -51,7 +51,11 @@ class MsgHistory(Base):
 
 class ClientDB:
     def __init__(self, username):
-        self.engine = create_engine('sqlite:///client' + username + '.sqlite?check_same_thread=False')
+        package_dir = os.path.abspath(os.path.dirname(__file__))
+        db_dir = os.path.join(package_dir, 'client' + username + '.sqlite?check_same_thread=False')
+        sqlite_path = ''.join(['sqlite:///', db_dir])
+        # self.engine = create_engine('sqlite:///client' + username + '.sqlite?check_same_thread=False')
+        self.engine = create_engine(sqlite_path)
         Base.metadata.create_all(self.engine)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
@@ -72,7 +76,6 @@ class ClientDB:
         self.session.commit()
 
 def mainloop():
-    print(os.getcwd())
     clientdb = ClientDB('Dany')
     print('Session:', clientdb.session)
 
