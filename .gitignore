@@ -100,3 +100,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# editors stuff
+.idea
+.vscode
+
+# my stuff
+OLD/
