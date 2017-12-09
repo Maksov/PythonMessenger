@@ -15,9 +15,10 @@ or
 
 ### Usage ###
 
-Server: ```python3 -m aemessenger.server```
+Server: ```python3 -m aemessenger.server``` or
 
-Qt Client: ```python3 -m aemessenger.server```
+
+Qt Client: ```python3 -m aemessenger.gui_client```
 
 #### Sample logins ####
 ```Dany , testlogin```
