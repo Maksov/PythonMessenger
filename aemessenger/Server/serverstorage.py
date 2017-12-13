@@ -56,6 +56,11 @@ class ServerDB:
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
+    def add_user_to_db(self, username, info):
+        client = Client(username, info)
+        self.session.add(client)
+        self.session.commit()
+
 
 def mainloop():
     serverdb = ServerDB()

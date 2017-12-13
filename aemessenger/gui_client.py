@@ -15,8 +15,10 @@ class ClientWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.package_dir = os.path.abspath(os.path.dirname(__file__))
-        ui_path = os.path.join(self.package_dir, 'UI', 'client.ui')
-        self.window = uic.loadUi(ui_path)
+        self.ui_path = os.path.join(self.package_dir, 'UI', 'client.ui')
+        self.standart_icon_path = os.path.join(self.package_dir, 'Img', 'user.png')
+        self.icon_new_msg_path = os.path.join(self.package_dir, 'Img', 'user_new_msg.png')
+        self.window = uic.loadUi(self.ui_path)
         self.contacts = QStandardItemModel(self.window.contactListView)
         self.controller = None  # контроллер клиента
         self.msg_thread = None  # поток обработки входящих сообщений
@@ -49,14 +51,13 @@ class ClientWidget(QWidget):
             show_error_msg('Contacts not found', QMessageBox.Warning)
             return
         names = self.controller.db.get_contacts()
-        icon_path = os.path.join(self.package_dir, 'Img', 'user.png')
         for name in names:
             item = QStandardItem(name)
             item.setEditable(False)
             font = item.font()
             font.setPointSize(15)
             item.setFont(font)
-            item.setIcon(QIcon(icon_path))
+            item.setIcon(QIcon(self.standart_icon_path))
             self.contacts.appendRow(item)
         self.contacts.sort(0)
         self.fill_chat_layouts(names)
@@ -75,12 +76,12 @@ class ClientWidget(QWidget):
                 self.chat_layout_indexes[name][0] = index
                 index += 1
                 continue
-            chatWidget = QWidget()
+            chat_widget = QWidget()
             layout = QVBoxLayout()
             layout.addStretch(1)
             layout.setContentsMargins(0, 0, 0, 0)
-            chatWidget.setLayout(layout)
-            self.chat_stackedLayout.addWidget(chatWidget)
+            chat_widget.setLayout(layout)
+            self.chat_stackedLayout.addWidget(chat_widget)
             self.chat_layout_indexes[name] = [index, layout]
             index += 1
 
@@ -88,6 +89,10 @@ class ClientWidget(QWidget):
         # Поменять заголовок при клике на контакт (nameLabel)
         name = str(self.window.contactListView.model().itemData(modelindex)[0])
         self.window.nameLabel.setText(name)
+        # Поменять иконку, на случай если пришло новое сообщение и она зеленая
+        contact_item = self.contacts.findItems(name)
+        contact_item[0].setIcon(QIcon(self.standart_icon_path))
+        # Выбрать лэйаут чата этого контакта
         i = self.chat_layout_indexes[name][0]
         self.chat_stackedLayout.setCurrentIndex(i)
 
@@ -112,7 +117,12 @@ class ClientWidget(QWidget):
 
     def add_gui_msg(self, name, text, is_left):
         msg = MsgBubble(text, is_left)
-        if is_left:
+        if is_left:  # Входящее сообщение
+            if name not in self.chat_layout_indexes:  # Если контакта нет в базе, то добавим его
+                self.controller.add_contact(name)
+                self.get_contacts()
+            contact_items = self.contacts.findItems(name)
+            contact_items[0].setIcon(QIcon(self.icon_new_msg_path))
             self.chat_layout_indexes[name][1].addWidget(msg)
         else:
             # spacer прижмет сбоку сообщение слева для случая, когда надо сделать пузырь справа

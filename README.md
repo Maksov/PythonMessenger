@@ -1,5 +1,6 @@
 # README #
 
+PyPI link: https://pypi.python.org/pypi/aemessenger/
 
 ### Project description ###
 
@@ -15,7 +16,7 @@ or
 
 ### Usage ###
 
-Server: ```python3 -m aemessenger.server``` or
+Server: ```python3 -m aemessenger.server```
 
 
 Qt Client: ```python3 -m aemessenger.gui_client```

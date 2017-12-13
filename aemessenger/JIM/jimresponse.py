@@ -13,7 +13,7 @@ class JIMResponse:
 
     def __init__(self, code, text='', resp_time=None, quantity=None, uid=''):
         self.response = str(code)  # можно передавать число или строку
-        if quantity:  # Возврат количества контактов клиенту
+        if quantity is not None:  # Возврат количества контактов клиенту
             self.quantity = str(quantity)
             return
         if resp_time is None:  # когда клиент читает ответ сервера, у него уже есть отметка времени

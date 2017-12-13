@@ -5,7 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='aemessenger',
-    version='0.1',
+    version='0.1.4',
     description='A sample Python socket messenger',
     long_description='A Geekbrains.ru messenger graduation project',
     url='https://github.com/danyae/PythonMessenger',

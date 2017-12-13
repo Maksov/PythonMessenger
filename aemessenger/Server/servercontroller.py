@@ -1,8 +1,6 @@
 import json
 import time
-
 from aemessenger.Server.serverstorage import ContactList, ServerDB, Client
-
 from aemessenger.JIM.jimresponse import JIMResponse
 from aemessenger.JIM.jimmsg import JIMSendContactListMsg
 
@@ -99,6 +97,18 @@ class JIMServerController(object):
         if error:
             msg = json.dumps({'response': response, 'time': timestr, 'error': error})
         return msg
+
+    def user_exist(self, username):
+        query = self.db.session.query(Client).filter_by(login=username).first()
+        return True if query else False
+
+    def add_user_to_db(self, username, info):
+        if info is None:
+            info = ''
+        if username is None:
+            return False
+        self.db.add_user_to_db(username, info)
+
 
 
 class ServerAction(object):

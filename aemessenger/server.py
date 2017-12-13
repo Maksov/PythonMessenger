@@ -45,7 +45,7 @@ class JIMRequestHandler(BaseRequestHandler):
         print('Client connected:', self.client_address)
         presense_data = self.request.recv(1024)  # получить имя
         response, action = self.server.controller.parse_client_message(presense_data.decode('utf-8'), None)
-        if action.usernames[0] in self.server.usernames:
+        if action.usernames[0] in self.server.usernames:  # Если клиент с таким логином уже подключен
             uid = response.uid
             response = JIMResponse(409, 'Username already exists', None, None, uid)
             print('Error:', self.client_address, 'tried to use username:', action.usernames[0])
@@ -53,6 +53,9 @@ class JIMRequestHandler(BaseRequestHandler):
         else:
             print(self.client_address, 'got username:', action.usernames[0])
             self.server.add_client(self, action.usernames[0])  # записать имя и клиента
+            # Проверить, что клиент есть в базе, если нет, то добавить
+            if not self.server.controller.user_exist(action.usernames[0]):
+                self.server.controller.add_user_to_db(action.usernames[0], None)
         self.request.sendall(response.utf8)  # отправить ответ
 
     def handle(self):
