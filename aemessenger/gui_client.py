@@ -1,11 +1,13 @@
 import sys
 import textwrap
 import os
+import base64
+from PIL import Image, ImageQt
 from aemessenger.Client.clientcontroller import ClientController
 from PyQt5 import QtWidgets, uic, QtGui
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
-from PyQt5.QtWidgets import QWidget, QMessageBox, QLabel, QVBoxLayout, QStackedLayout, QHBoxLayout
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QByteArray, QBuffer, QIODevice, QJsonValue, qUncompress
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon, QPixmap
+from PyQt5.QtWidgets import QWidget, QMessageBox, QLabel, QVBoxLayout, QStackedLayout, QHBoxLayout, QFileDialog
 from aemessenger.UI.add_contact_dialog import AddContactDialog
 from aemessenger.UI.username_dialog import UsernameDialog
 from aemessenger.JIM.jimmsg import JIMUserMsg, JIMMessageBuilder, JIMChatMsg
@@ -41,6 +43,11 @@ class ClientWidget(QWidget):
 
         self.window.chat_scroll_widget.setLayout(self.chat_stackedLayout)
         self.window.chat_scroll_widget.setContentsMargins(20, 20, 25, 20)
+
+        self.window.avatarLabel.mousePressEvent = self.select_avatar
+        pixmap = QPixmap(self.standart_icon_path)
+        pixmap_scaled = pixmap.scaled(40, 40, Qt.KeepAspectRatio)
+        self.window.avatarLabel.setPixmap(pixmap_scaled)
 
         self.window.show()
 
@@ -148,6 +155,43 @@ class ClientWidget(QWidget):
         elif type(jimmsg) is JIMChatMsg:
             raise NotImplemented
 
+    def select_avatar(self, event):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                   "Image Files (*.png *.jpeg *.jpg);;All Files (*)", options=options)
+        pixmap = ''
+        size = 40, 40
+        if file_name:
+            image = Image.open(file_name)
+            image.thumbnail(size)  # Сжать до 100px c сохранением пропорций
+            pil_image = ImageQt.ImageQt(image)
+            qt_image = QtGui.QImage(pil_image)
+            pixmap = QPixmap.fromImage(qt_image)
+            # self.window.avatarLabel.setPixmap(pixmap)  # что-то не работает с JPG - черная фотка=/
+
+            # преобразовать в байты
+            byte_array = QByteArray()
+            buffer = QBuffer(byte_array)
+            buffer.open(QIODevice.WriteOnly)
+            pixmap.save(buffer, 'PNG')
+            encoded_bytes = buffer.data().toBase64()
+            encoded_str = str(encoded_bytes).replace('b\'', '').replace('\'', '')
+
+            # Отправить в базу
+            self.controller.send_avatar_to_server(encoded_str)
+            # И теперь вытащить и установить
+            self.get_avatar_from_server()
+
+    def get_avatar_from_server(self):
+        data = self.controller.get_avatar_from_server(self.controller.username)
+        if data != -1:
+            img_bytes = QByteArray.fromBase64(data.encode('ascii'))
+            pixmap = QPixmap()
+            pixmap.loadFromData(img_bytes, 'PNG')
+            # pixmap = pixmap.scaled(40, 40, Qt.KeepAspectRatio)
+            self.window.avatarLabel.setPixmap(pixmap)
+
 
 class MsgThread(QThread):
     msg_ready = pyqtSignal(object)
@@ -212,6 +256,7 @@ def mainloop():
     title = 'Messenger - ' + username
     print(title)
     client.window.setWindowTitle(title)
+    client.window.selfnameLabel.setText(username)
 
     # Создать контроллер
     try:
@@ -233,6 +278,7 @@ def mainloop():
 
     # Получить список контактов
     client.get_contacts()
+    client.get_avatar_from_server()
 
     sys.exit(app.exec_())
 

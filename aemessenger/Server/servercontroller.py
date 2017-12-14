@@ -21,6 +21,7 @@ class JIMServerController(object):
             print(msg_bytes)
             return JIMResponse(400, 'Incorrectly formed JSON', timestr, None, None), \
                    ServerAction('error', None, from_username)
+
         if 'action' in parsed_msg:
             action = parsed_msg['action']
 
@@ -86,6 +87,25 @@ class JIMServerController(object):
                 else:
                     response = JIMResponse(404, 'Please log in.', timestr, None, parsed_msg['uid'])
                     return response, None
+
+            elif action == 'avatar':
+                username = parsed_msg['user_id']
+                # Постит свой аватар или запрашивает свой
+                data = None
+                if username == from_username:
+                    data = parsed_msg['data']
+                    # Хочет свой
+                    if data == '':
+                        data = self.db.get_last_avatar(username)
+                    else:  # Постит свой в базу
+                        self.db.save_avatar(username, data)
+                        return JIMResponse(200, 'OK', timestr, None, parsed_msg['uid']), None
+                else:  # Запрашивает чужой аватар
+                    data = self.db.get_last_avatar(username)
+                if data:
+                    return JIMResponse(200, 'OK', timestr, data=data, uid=parsed_msg['uid']), None
+                else:
+                    return JIMResponse(404, 'Not found', timestr, None, parsed_msg['uid']), None
         else:
             return JIMResponse(400, 'Incorrectly formed JSON', timestr, None, parsed_msg['uid']), None
 

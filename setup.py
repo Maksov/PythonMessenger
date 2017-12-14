@@ -5,7 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='aemessenger',
-    version='0.1.4',
+    version='0.1.5',
     description='A sample Python socket messenger',
     long_description='A Geekbrains.ru messenger graduation project',
     url='https://github.com/danyae/PythonMessenger',
@@ -34,7 +34,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'PyQt5>=5.9',
-        'SQLAlchemy>=1.1.14'
+        'SQLAlchemy>=1.1.14',
+        'Pillow>=4.3.0'
     ],
 
     # List additional groups of dependencies here (e.g. development

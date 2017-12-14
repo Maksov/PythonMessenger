@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, ForeignKey, create_engine
+from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, ForeignKey, create_engine, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
@@ -46,6 +46,17 @@ class ContactList(Base):
         self.contactid = contactid
 
 
+class Avatar(Base):
+    __tablename__ = 'avatars'
+    id = Column(Integer, primary_key=True)
+    userid = Column(Integer, ForeignKey('clients.id'))
+    avatar = Column(String, nullable=True)
+
+    def __init__(self, userid, img):
+        self.userid = userid
+        self.avatar = img
+
+
 class ServerDB:
     def __init__(self):
         package_dir = os.path.abspath(os.path.dirname(__file__))
@@ -60,6 +71,17 @@ class ServerDB:
         client = Client(username, info)
         self.session.add(client)
         self.session.commit()
+
+    def save_avatar(self, username, img):
+        id = self.session.query(Client).filter_by(login=username).first().id
+        avatar = Avatar(id, img)
+        self.session.add(avatar)
+        self.session.commit()
+
+    def get_last_avatar(self, username):
+        id = self.session.query(Client).filter_by(login=username).first().id
+        avatar = self.session.query(Avatar).filter_by(userid=id).order_by('-id').first()
+        return avatar.avatar if avatar else None
 
 
 def mainloop():

@@ -3,7 +3,7 @@ import time
 from uuid import uuid1
 
 
-# actions: authenticate, presence, quit, msg, join, leave, probe (server)
+# actions: authenticate, presence, quit, msg, join, leave, probe (server), avatar
 # fields: action, time, user (account_name, status), type, to, from, encoding, message, room
 class JIMMsg:
     def __init__(self, action):
@@ -105,13 +105,22 @@ class JIMDelContactMsg(JIMMsg):
         self.user_id = user_id
 
 
+class JIMAvatarMsg(JIMMsg):
+    """Если user_id соответствует имени отправившего клиента - то он постит картинку
+    Если нет, то запрашивает картинку другого пользователя"""
+    def __init__(self, username, data):
+        super().__init__('avatar')
+        self.user_id = username
+        self.data = data
+
+
 class JIMMessageBuilder:
     msg_classes = {'authenticate': 'JIMAuthMsg', 'presence': 'JIMPresenceMsg',
                    'quit': 'JIMQuitMsg', 'msg': ('JIMUserMsg', 'JIMChatMsg'),
                    'join': 'JIMJoinChatMsg', 'leave': 'JIMLeaveChatMsg',
                    'probe': 'JIMProbeMsg', 'get_contacts': 'JIMGetContactsMsg',
                    'contact_list': 'JIMSendContactListMsg', 'add_contact': 'JIMAddContactMsg',
-                   'del_contact': 'JIMDelContactMsg'
+                   'del_contact': 'JIMDelContactMsg', 'avatar': 'JIMAvatarMsg'
                    }
 
     @staticmethod

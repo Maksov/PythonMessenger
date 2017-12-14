@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import socket
 import time
 import os
@@ -63,7 +64,7 @@ class JIMRequestHandler(BaseRequestHandler):
             # работа с потоком
             try:
                 while True:
-                    data = self.request.recv(1024)
+                    data = self.request.recv(16384)
                     if not data:
                         print('{0} disconnected'.format(self.client_address))
                         break

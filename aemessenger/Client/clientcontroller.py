@@ -5,7 +5,8 @@ import sys
 from sys import argv
 from aemessenger.Client.clientstorage import ClientDB, MsgHistory
 from aemessenger.Client.socketclient import SocketClient
-from aemessenger.JIM.jimmsg import JIMPresenceMsg, JIMGetContactsMsg, JIMAddContactMsg, JIMDelContactMsg, JIMUserMsg
+from aemessenger.JIM.jimmsg import JIMPresenceMsg, JIMGetContactsMsg, JIMAddContactMsg, JIMDelContactMsg, \
+    JIMUserMsg, JIMAvatarMsg
 from aemessenger.JIM.jimresponse import JIMResponse
 
 ADDRESS = 'localhost'
@@ -49,6 +50,8 @@ class ClientController(object):
             resp = JIMResponse.fromjson(resp_json)
             if hasattr(resp, 'quantity'):  # Сервер говорит, сколько будет контактов
                 return ClientAction('quantity', resp.quantity)
+            elif hasattr(resp, 'data'):  # Пришла картинка
+                return ClientAction('data', resp.data)
             elif resp.response == '200':
                 return ClientAction(True, None)
             elif resp.response == '409':  # Имя не подходит
@@ -113,6 +116,23 @@ class ClientController(object):
         time = datetime.datetime.strptime(jimmsg.time, "%a %b %d %H:%M:%S %Y")
         msg = MsgHistory(None, jimmsg.to, jimmsg.account, jimmsg.message, time)
         self.db.add_msg_history(msg)
+
+    def send_avatar_to_server(self, avatar_bytes):
+        msg = JIMAvatarMsg(self.username, avatar_bytes)
+        self.client.add_to_send_queue(msg)
+        action = self.parse_server_response()
+        if action.action is not True:
+            return -1
+        return 0
+
+    def get_avatar_from_server(self, username):
+        msg = JIMAvatarMsg(username, '')
+        self.client.add_to_send_queue(msg)
+        action = self.parse_server_response()
+        if action.action == 'data':
+            return action.value
+        else:
+            return -1
 
 
 class ClientAction(object):

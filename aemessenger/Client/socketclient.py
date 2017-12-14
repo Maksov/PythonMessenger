@@ -44,7 +44,7 @@ class RecieveThread(Thread):
 
     def run(self):
         while not self.is_stopped:
-            resp = self.client.sock.recv(1024)
+            resp = self.client.sock.recv(64384)
             if resp:
                 resp_json = resp.decode('utf-8')
                 for r in resp_json.split('\r\n\r\n'):
@@ -60,6 +60,7 @@ class RecieveThread(Thread):
 class SocketClient(object):
     def __init__(self, args):
         self.sock = socket(AF_INET, SOCK_STREAM)
+        self.sock.setsockopt(SOL_SOCKET, SO_SNDBUF, 16384)
         self.address, self.port = args
         self.sock.connect((self.address, self.port))
         self.send_queue = Queue()  # отправка сообщений на сервер
