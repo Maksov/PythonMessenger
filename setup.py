@@ -5,7 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='aemessenger',
-    version='0.1.6',
+    version='0.1.7',
     description='A sample Python socket messenger',
     long_description='A Geekbrains.ru messenger graduation project',
     url='https://github.com/danyae/PythonMessenger',
@@ -67,8 +67,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'client=aemessenger.gui_client:mainloop',
-            'server=aemessenger.server:mainloop'
+            'aeclient=aemessenger.gui_client:mainloop',
+            'aeserver=aemessenger.server:mainloop'
         ],
     },
 )
