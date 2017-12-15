@@ -5,7 +5,7 @@ import base64
 from PIL import Image, ImageQt
 from aemessenger.Client.clientcontroller import ClientController
 from PyQt5 import QtWidgets, uic, QtGui
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QByteArray, QBuffer, QIODevice, QJsonValue, qUncompress
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QByteArray, QBuffer, QIODevice, QJsonValue, qUncompress, QModelIndex
 from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QMessageBox, QLabel, QVBoxLayout, QStackedLayout, QHBoxLayout, QFileDialog
 from aemessenger.UI.add_contact_dialog import AddContactDialog
@@ -18,7 +18,7 @@ class ClientWidget(QWidget):
         super().__init__()
         self.package_dir = os.path.abspath(os.path.dirname(__file__))
         self.ui_path = os.path.join(self.package_dir, 'UI', 'client.ui')
-        self.standart_icon_path = os.path.join(self.package_dir, 'Img', 'user.png')
+        self.standard_icon_path = os.path.join(self.package_dir, 'Img', 'user.png')
         self.icon_new_msg_path = os.path.join(self.package_dir, 'Img', 'user_new_msg.png')
         self.window = uic.loadUi(self.ui_path)
         self.contacts = QStandardItemModel(self.window.contactListView)
@@ -45,7 +45,7 @@ class ClientWidget(QWidget):
         self.window.chat_scroll_widget.setContentsMargins(20, 20, 25, 20)
 
         self.window.avatarLabel.mousePressEvent = self.select_avatar
-        pixmap = QPixmap(self.standart_icon_path)
+        pixmap = QPixmap(self.standard_icon_path)
         pixmap_scaled = pixmap.scaled(40, 40, Qt.KeepAspectRatio)
         self.window.avatarLabel.setPixmap(pixmap_scaled)
 
@@ -64,10 +64,18 @@ class ClientWidget(QWidget):
             font = item.font()
             font.setPointSize(15)
             item.setFont(font)
-            item.setIcon(QIcon(self.standart_icon_path))
+            item.setIcon(QIcon(self.standard_icon_path))
             self.contacts.appendRow(item)
         self.contacts.sort(0)
         self.fill_chat_layouts(names)
+        self.load_history()
+        # Select first contact
+        index = self.contacts.index(0, 0, QModelIndex())
+        self.window.contactListView.setCurrentIndex(index)
+        try:
+            self.contact_selected(index)
+        except KeyError as e:
+            pass  # nothing happened
 
     def add_contact(self):
         contact, result = AddContactDialog().get_username()
@@ -98,7 +106,7 @@ class ClientWidget(QWidget):
         self.window.nameLabel.setText(name)
         # Поменять иконку, на случай если пришло новое сообщение и она зеленая
         contact_item = self.contacts.findItems(name)
-        contact_item[0].setIcon(QIcon(self.standart_icon_path))
+        contact_item[0].setIcon(QIcon(self.standard_icon_path))
         # Выбрать лэйаут чата этого контакта
         i = self.chat_layout_indexes[name][0]
         self.chat_stackedLayout.setCurrentIndex(i)
@@ -114,7 +122,7 @@ class ClientWidget(QWidget):
             return
         name = self.window.contactListView.model().itemData(index[0])[0]
         if name != self.controller.username:
-            self.add_gui_msg(name, text, False)  # добавить в gui
+            self.add_gui_msg(name, text, is_left=False, is_new=False)  # добавить в gui
         result = self.controller.send_user_msg(text, name)
         # Успешно отправлено?
         if result == 0:
@@ -122,14 +130,15 @@ class ClientWidget(QWidget):
         else:
             show_error_msg('Not delivered', QMessageBox.Warning)
 
-    def add_gui_msg(self, name, text, is_left):
+    def add_gui_msg(self, name, text, is_left, is_new):
         msg = MsgBubble(text, is_left)
         if is_left:  # Входящее сообщение
             if name not in self.chat_layout_indexes:  # Если контакта нет в базе, то добавим его
                 self.controller.add_contact(name)
                 self.get_contacts()
             contact_items = self.contacts.findItems(name)
-            contact_items[0].setIcon(QIcon(self.icon_new_msg_path))
+            if is_new:
+                contact_items[0].setIcon(QIcon(self.icon_new_msg_path))
             self.chat_layout_indexes[name][1].addWidget(msg)
         else:
             # spacer прижмет сбоку сообщение слева для случая, когда надо сделать пузырь справа
@@ -151,9 +160,11 @@ class ClientWidget(QWidget):
     def on_msg_recieved(self, jimmsg):
         if type(jimmsg) is JIMUserMsg:
             left = True if jimmsg.to == self.controller.username else False
-            self.add_gui_msg(jimmsg.account, jimmsg.message, left)
+            is_new = False if jimmsg.to == self.controller.username else True
+            self.add_gui_msg(jimmsg.account, jimmsg.message, left, is_new=is_new)
         elif type(jimmsg) is JIMChatMsg:
             raise NotImplemented
+        self.controller.add_user_msg_to_db(jimmsg)
 
     def select_avatar(self, event):
         options = QFileDialog.Options()
@@ -191,6 +202,13 @@ class ClientWidget(QWidget):
             pixmap.loadFromData(img_bytes, 'PNG')
             # pixmap = pixmap.scaled(40, 40, Qt.KeepAspectRatio)
             self.window.avatarLabel.setPixmap(pixmap)
+
+    def load_history(self):
+        for name in self.chat_layout_indexes.keys():
+            history = self.controller.db.get_last_history(name, self.controller.username)
+            for msg in history:
+                is_left = msg.to_username == self.controller.username
+                self.add_gui_msg(name, msg.msg, is_left, is_new=False)
 
 
 class MsgThread(QThread):

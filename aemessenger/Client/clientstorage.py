@@ -75,6 +75,19 @@ class ClientDB:
         self.session.add(msg)
         self.session.commit()
 
+    def get_last_history(self, contact_name, username):
+        messages = list()
+        query_from = self.session.query(MsgHistory).filter(MsgHistory.from_username.like(contact_name)).\
+            filter(MsgHistory.to_username.like(username)).order_by(MsgHistory.id.desc()).limit(5)
+        messages += [msg for msg in query_from]
+        if contact_name != username:  # not from user to himself
+            query_to = self.session.query(MsgHistory).filter(MsgHistory.from_username.like(username)). \
+                filter(MsgHistory.to_username.like(contact_name)).order_by(MsgHistory.id.desc()).limit(5)
+            messages += [msg for msg in query_to]
+        messages = sorted(messages, key=lambda msg: msg.id)
+        return messages
+
+
 def mainloop():
     clientdb = ClientDB('Dany')
     print('Session:', clientdb.session)

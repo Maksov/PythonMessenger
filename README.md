@@ -16,15 +16,15 @@ or
 
 ### Usage ###
 
-Server: ```python3 -m aemessenger.server```
+Server: ```python3 -m aemessenger.server``` or just ```server```
 
 
-Qt Client: ```python3 -m aemessenger.gui_client```
+Qt Client: ```python3 -m aemessenger.gui_client``` or just ```client```
 
 #### Sample logins ####
-```Dany , testlogin```
+```Now any login will work actually```
 
-### Info for me ###
+### Note to self ###
 Build: ```python3 setup.py bdist_wheel```
 
 Install local: ```pip3 install ./dist/aemessenger-0.1-py3-none-any.whl```
